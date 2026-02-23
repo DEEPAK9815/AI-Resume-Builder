@@ -1,7 +1,44 @@
 import React from 'react';
 import { useResumeData } from '../hooks/useResumeData';
-import { Plus, Database, Eye, Trash2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Plus, Database, Eye, Trash2, ShieldCheck, AlertCircle, Layout } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const ACTION_VERBS = ['Built', 'Developed', 'Designed', 'Implemented', 'Led', 'Improved', 'Created', 'Optimized', 'Automated'];
+
+const BulletGuidance: React.FC<{ text: string }> = ({ text }) => {
+    if (!text) return null;
+
+    const bullets = text.split('\n').filter(b => b.trim());
+    const warnings: string[] = [];
+
+    bullets.forEach(bullet => {
+        const trimmed = bullet.trim().replace(/^[-•*]\s*/, '');
+        if (!trimmed) return;
+
+        const firstWord = trimmed.split(' ')[0];
+        const hasActionVerb = ACTION_VERBS.some(v => v.toLowerCase() === firstWord.toLowerCase());
+        const hasNumbers = /\d+(%|k|x|X|m)?/.test(trimmed);
+
+        if (!hasActionVerb) warnings.push("Start with a strong action verb (e.g., Developed, Led).");
+        if (!hasNumbers) warnings.push("Add measurable impact (numbers like 20%, 5k, etc.).");
+    });
+
+    if (warnings.length === 0) return null;
+
+    // Filter unique warnings
+    const uniqueWarnings = Array.from(new Set(warnings)).slice(0, 2);
+
+    return (
+        <div className="flex flex-col gap-1 mt-2">
+            {uniqueWarnings.map((w, i) => (
+                <div key={i} className="flex items-center gap-1.5 text-[10px] text-amber-700 font-medium">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{w}</span>
+                </div>
+            ))}
+        </div>
+    );
+};
 
 export const Builder: React.FC = () => {
     const {
@@ -11,6 +48,7 @@ export const Builder: React.FC = () => {
         loadSample,
         updatePersonalInfo,
         updateSummary,
+        updateTemplate,
         addEducation,
         addExperience,
         addProject,
@@ -20,6 +58,12 @@ export const Builder: React.FC = () => {
         updateProject,
         updateSkills
     } = useResumeData();
+
+    const templates: Array<{ id: 'classic' | 'modern' | 'minimal'; label: string }> = [
+        { id: 'classic', label: 'Classic' },
+        { id: 'modern', label: 'Modern' },
+        { id: 'minimal', label: 'Minimal' }
+    ];
 
     return (
         <div className="kn-page">
@@ -37,6 +81,28 @@ export const Builder: React.FC = () => {
                         <Eye className="w-4 h-4 mr-2" />
                         Full Preview
                     </Link>
+                </div>
+            </div>
+
+            {/* Template Selector Tabs */}
+            <div className="px-10 mb-8 max-w-[1400px] mx-auto w-full">
+                <div className="flex items-center gap-4 border-b border-gray-200">
+                    <div className="flex items-center gap-2 text-gray-400 mr-4 py-3">
+                        <Layout className="w-4 h-4" />
+                        <span className="text-xs font-bold uppercase tracking-widest">Layout Template</span>
+                    </div>
+                    {templates.map(t => (
+                        <button
+                            key={t.id}
+                            className={`py-3 px-6 text-sm font-bold transition-all border-b-2 ${data.template === t.id
+                                    ? 'border-red-800 text-red-800'
+                                    : 'border-transparent text-gray-500 hover:text-gray-800'
+                                }`}
+                            onClick={() => updateTemplate(t.id)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -156,7 +222,13 @@ export const Builder: React.FC = () => {
                                     <input className="kn-input mb-0" placeholder="Role" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} />
                                     <input className="kn-input mb-0" placeholder="Date" value={exp.date} onChange={(e) => updateExperience(idx, 'date', e.target.value)} />
                                 </div>
-                                <textarea className="kn-input" placeholder="Accomplishments... (Tip: include numbers for higher score)" value={exp.description} onChange={(e) => updateExperience(idx, 'description', e.target.value)} />
+                                <textarea
+                                    className="kn-input mb-1"
+                                    placeholder="Accomplishments... (Use bullets + action verbs)"
+                                    value={exp.description}
+                                    onChange={(e) => updateExperience(idx, 'description', e.target.value)}
+                                />
+                                <BulletGuidance text={exp.description} />
                             </div>
                         ))}
                     </div>
@@ -181,7 +253,13 @@ export const Builder: React.FC = () => {
                                     <input className="kn-input mb-0" placeholder="Project Name" value={proj.name} onChange={(e) => updateProject(idx, 'name', e.target.value)} />
                                     <input className="kn-input mb-0" placeholder="Link" value={proj.link} onChange={(e) => updateProject(idx, 'link', e.target.value)} />
                                 </div>
-                                <input className="kn-input mb-0" placeholder="Short Description..." value={proj.description} onChange={(e) => updateProject(idx, 'description', e.target.value)} />
+                                <textarea
+                                    className="kn-input mb-1"
+                                    placeholder="Short Description... (Highlight impact)"
+                                    value={proj.description}
+                                    onChange={(e) => updateProject(idx, 'description', e.target.value)}
+                                />
+                                <BulletGuidance text={proj.description} />
                             </div>
                         ))}
                     </div>
@@ -204,7 +282,7 @@ export const Builder: React.FC = () => {
                 <aside className="kn-secondary-panel sticky top-32 h-fit">
 
                     {/* ATS Score Meter */}
-                    <div className="kn-panel-box bg-white border-2 border-red-800 mb-6">
+                    <div className="kn-panel-box bg-white border-2 border-red-800 mb-6 transition-all duration-300">
                         <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-2 text-red-800 font-bold">
                                 <ShieldCheck className="w-5 h-5" />
@@ -222,9 +300,9 @@ export const Builder: React.FC = () => {
 
                         {suggestions.length > 0 && (
                             <div className="flex flex-col gap-3">
-                                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Improvement Tips</label>
+                                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Top 3 Improvements</label>
                                 {suggestions.map((s, i) => (
-                                    <div key={i} className="flex gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                                    <div key={i} className="flex gap-2 text-xs text-gray-600 bg-gray-50 p-2.5 rounded border border-gray-100 shadow-sm animate-in fade-in slide-in-from-left-2 duration-300">
                                         <AlertCircle className="w-3.5 h-3.5 text-red-800 shrink-0" />
                                         <span>{s}</span>
                                     </div>
@@ -233,7 +311,7 @@ export const Builder: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Real-time Preview Panel */}
+                    {/* Real-time Preview Panel (Basic layout in builder) */}
                     <div className="kn-panel-box min-h-[500px] flex flex-col p-6 bg-white shadow-lg font-serif border border-gray-200">
                         <div className="text-center mb-6">
                             <h2 className="text-xl m-0 uppercase tracking-tighter">{data.personalInfo.fullName || 'YOUR NAME'}</h2>
@@ -261,37 +339,14 @@ export const Builder: React.FC = () => {
                                             <span>{exp.date}</span>
                                         </div>
                                         <div className="text-[8px] italic opacity-70 mb-0.5">{exp.role}</div>
-                                        <p className="text-[8px] opacity-80 leading-tight">{exp.description}</p>
+                                        <p className="text-[8px] opacity-80 leading-tight line-clamp-2">{exp.description}</p>
                                     </div>
                                 ))}
-                            </div>
-                        )}
-
-                        {data.education.length > 0 && (
-                            <div className="mb-4">
-                                <h4 className="border-b border-black text-[9px] uppercase tracking-widest mb-1 pb-0.5">Education</h4>
-                                {data.education.map((edu, idx) => (
-                                    <div key={idx} className="flex justify-between text-[9px] mb-1">
-                                        <div><span className="font-bold">{edu.school}</span> - {edu.degree}</div>
-                                        <span className="opacity-70">{edu.date}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {data.skills.length > 0 && (
-                            <div className="mb-4">
-                                <h4 className="border-b border-black text-[9px] uppercase tracking-widest mb-1 pb-0.5">Skills</h4>
-                                <div className="flex flex-wrap gap-1">
-                                    {data.skills.map((s, i) => (
-                                        <span key={i} className="text-[8px] bg-gray-50 px-1 py-0.5 rounded border border-gray-100">{s}</span>
-                                    ))}
-                                </div>
                             </div>
                         )}
 
                         <div className="mt-auto pt-6 text-[7px] text-center opacity-30 italic">
-                            Generated within the KodNest Premium Build System
+                            Template: <span className="uppercase font-bold">{data.template}</span>
                         </div>
                     </div>
                 </aside>
