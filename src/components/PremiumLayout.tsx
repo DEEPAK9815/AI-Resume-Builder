@@ -10,6 +10,15 @@ export const PremiumLayout: React.FC = () => {
   const stepMatch = path.match(/\/rb\/0(\d)-/);
   const currentStep = stepMatch ? parseInt(stepMatch[1]) : 0;
 
+  // Status Calculation Logic
+  const stepsComplete = Array.from({ length: 8 }, (_, i) => !!localStorage.getItem(`rb_step_${i + 1}_artifact`)).every(s => s);
+  const checklistData = JSON.parse(localStorage.getItem('rb_checklist_status') || '[]');
+  const checklistComplete = checklistData.length === 10 && checklistData.every((item: any) => item.completed);
+  const linksData = JSON.parse(localStorage.getItem('rb_final_submission') || '{}');
+  const linksComplete = !!(linksData.lovable && linksData.github && linksData.deploy);
+
+  const isShipped = stepsComplete && checklistComplete && linksComplete;
+
   return (
     <div className="kn-layout">
       {/* Top Bar */}
@@ -23,12 +32,20 @@ export const PremiumLayout: React.FC = () => {
           </nav>
         </div>
 
-        {currentStep > 0 && (
-          <div className="kn-progress-indicator">Project 3 — Step {currentStep} of 8</div>
-        )}
+        <div className="flex items-center gap-6">
+          {currentStep > 0 && !isShipped && (
+            <div className="kn-progress-indicator">Project 3 — Step {currentStep} of 8</div>
+          )}
 
-        <div className="kn-status-badge in-progress">
-          {currentStep === 8 ? 'Finalizing' : 'Active'}
+          {isShipped && (
+            <div className="text-xs font-bold text-green-700 animate-in fade-in">
+              Project 3 Shipped Successfully.
+            </div>
+          )}
+
+          <div className={`kn-status-badge ${isShipped ? 'shipped' : 'in-progress'}`}>
+            {isShipped ? 'Shipped' : (currentStep === 8 ? 'Finalizing' : 'Active')}
+          </div>
         </div>
       </header>
 
