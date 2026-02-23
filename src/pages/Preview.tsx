@@ -4,7 +4,7 @@ import { ArrowLeft, Printer, Layout, Copy, AlertTriangle, Check, Github, Externa
 import { Link } from 'react-router-dom';
 
 export const Preview: React.FC = () => {
-    const { data, updateTemplate } = useResumeData();
+    const { data, score, suggestions, updateTemplate } = useResumeData();
     const [copied, setCopied] = useState(false);
     const [showToast, setShowToast] = useState(false);
 
@@ -330,6 +330,73 @@ export const Preview: React.FC = () => {
                         <Printer className="w-4 h-4 mr-2" />
                         Print / Save as PDF
                     </button>
+                </div>
+            </div>
+
+            {/* ATS Score & Suggestions Panel */}
+            <div className="w-full max-w-4xl mb-12 grid grid-cols-1 md:grid-cols-3 gap-8 no-print animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center shadow-sm">
+                    <div className="relative w-32 h-32 flex items-center justify-center mb-4">
+                        <svg className="w-full h-full transform -rotate-90">
+                            <circle
+                                cx="64"
+                                cy="64"
+                                r="58"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="text-gray-100"
+                            />
+                            <circle
+                                cx="64"
+                                cy="64"
+                                r="58"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                strokeDasharray={364.4}
+                                strokeDashoffset={364.4 - (364.4 * score) / 100}
+                                strokeLinecap="round"
+                                className={`transition-all duration-1000 ease-out ${score <= 40 ? 'text-red-500' :
+                                        score <= 70 ? 'text-amber-500' : 'text-green-500'
+                                    }`}
+                            />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-3xl font-black">{score}</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Score</span>
+                        </div>
+                    </div>
+                    <div className={`text-sm font-black uppercase tracking-widest ${score <= 40 ? 'text-red-500' :
+                            score <= 70 ? 'text-amber-500' : 'text-green-500'
+                        }`}>
+                        {score <= 40 ? 'Needs Work' :
+                            score <= 70 ? 'Getting There' : 'Strong Resume'}
+                    </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 col-span-2 shadow-sm">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                        Improvement Suggestions
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {suggestions.length > 0 ? (
+                            suggestions.map((s: string, i: number) => (
+                                <div key={i} className="flex gap-3 text-xs leading-relaxed text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100 items-start">
+                                    <div className="w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">
+                                        {i + 1}
+                                    </div>
+                                    <span>{s}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="col-span-2 flex items-center justify-center py-8 text-green-600 font-bold text-sm gap-2">
+                                <Check className="w-5 h-5" />
+                                Your resume is optimized for ATS!
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

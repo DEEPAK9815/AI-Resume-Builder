@@ -249,66 +249,105 @@ export const useResumeData = () => {
         }));
     };
 
-    // Deterministic ATS Scoring
+    // Deterministic ATS Scoring per new requirements
     const calculateScore = () => {
         let score = 0;
         const suggestions: string[] = [];
 
-        // 1. Projects (at least 2) - Priority 1
-        if (data.projects.filter(p => p.name).length >= 2) {
+        // 1. Name (+10)
+        if (data.personalInfo.fullName) {
             score += 10;
         } else {
-            suggestions.push("Add at least 2 projects to showcase your range.");
+            suggestions.push("Add your full name (+10 points)");
         }
 
-        // 2. Numeric Impact (Numbers in bullets) - Priority 2
-        const hasNumbers = [...data.experience].some(
-            item => /\d+(%|k|x|X|m)?/.test(item.description || '')
-        ) || data.projects.some(p => /\d+(%|k|x|X|m)?/.test(p.description || ''));
-
-        if (hasNumbers) {
-            score += 15;
+        // 2. Email (+10)
+        if (data.personalInfo.email) {
+            score += 10;
         } else {
-            suggestions.push("Add measurable impact (numbers like %, $, or count) to your bullets.");
+            suggestions.push("Provide an email address (+10 points)");
         }
 
-        // 3. Summary (40-120 words) - Priority 3
-        const summaryWords = data.summary.trim().split(/\s+/).filter(Boolean).length;
-        if (summaryWords >= 40 && summaryWords <= 120) {
-            score += 15;
+        // 3. Summary > 50 chars (+10)
+        if (data.summary.length > 50) {
+            score += 10;
         } else {
-            suggestions.push("Write a stronger professional summary (target 40–120 words).");
+            suggestions.push("Write a summary of at least 50 characters (+10 points)");
         }
 
-        // 4. Skills (>= 8) - Priority 4
+        // 4. Experience with bullets (+15)
+        const activeExp = data.experience.filter(exp => exp.company);
+        const hasExp = activeExp.length > 0;
+        const hasBullets = activeExp.some(exp =>
+            exp.description.includes('•') ||
+            exp.description.includes('-') ||
+            exp.description.includes('\n')
+        );
+
+        if (hasExp && hasBullets) {
+            score += 15;
+        } else if (!hasExp) {
+            suggestions.push("Add at least one experience entry (+15 points)");
+        } else {
+            suggestions.push("Use bullet points in your experience description (+5 points)");
+            score += 10; // Partial score for having experience but no bullets
+        }
+
+        // 5. Education (+10)
+        if (data.education.some(edu => edu.school)) {
+            score += 10;
+        } else {
+            suggestions.push("Add your educational background (+10 points)");
+        }
+
+        // 6. Skills >= 5 (+10)
         const totalSkills = data.skills.technical.length + data.skills.soft.length + data.skills.tools.length;
-        if (totalSkills >= 8) {
+        if (totalSkills >= 5) {
             score += 10;
         } else {
-            suggestions.push("Focus on expanding your skills list (target 8+ core competencies).");
+            suggestions.push("Add at least 5 skills across categories (+10 points)");
         }
 
-        // 5. Experience (at least 1) - Priority 5
-        if (data.experience.length >= 1) {
+        // 7. Projects (+10)
+        if (data.projects.some(p => p.name)) {
             score += 10;
         } else {
-            suggestions.push("Add internship or work experience to demonstrate professional growth.");
+            suggestions.push("Add a project title to showcase your work (+10 points)");
         }
 
-        // 6. Links (GitHub/LinkedIn)
-        if (data.personalInfo.github || data.personalInfo.linkedin) {
-            score += 10;
+        // 8. Phone (+5)
+        if (data.personalInfo.phone) {
+            score += 5;
+        } else {
+            suggestions.push("Add your phone number (+5 points)");
         }
 
-        // 7. Education complete
-        const eduComplete = data.education.length > 0 && data.education.every(e => e.school && e.degree);
-        if (eduComplete) {
+        // 9. LinkedIn (+5)
+        if (data.personalInfo.linkedin) {
+            score += 5;
+        } else {
+            suggestions.push("Add your LinkedIn profile link (+5 points)");
+        }
+
+        // 10. GitHub (+5)
+        if (data.personalInfo.github) {
+            score += 5;
+        } else {
+            suggestions.push("Add your GitHub profile link (+5 points)");
+        }
+
+        // 11. Action Verbs in Summary (+10)
+        const ACTION_VERBS = ['built', 'led', 'designed', 'implemented', 'developed', 'created', 'optimized', 'managed', 'developed', 'improved'];
+        const hasActionVerbs = ACTION_VERBS.some(verb => data.summary.toLowerCase().includes(verb));
+        if (hasActionVerbs) {
             score += 10;
+        } else if (data.summary.length > 0) {
+            suggestions.push("Use strong action verbs (built, led, designed) in your summary (+10 points)");
         }
 
         return {
-            score: Math.min(100, score + 20), // +20 baseline for base structure quality
-            suggestions: suggestions.slice(0, 3)
+            score: Math.min(100, score),
+            suggestions: suggestions.slice(0, 4)
         };
     };
 
