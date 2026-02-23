@@ -6,6 +6,13 @@ import { Link } from 'react-router-dom';
 export const Preview: React.FC = () => {
     const { data, updateTemplate } = useResumeData();
     const [copied, setCopied] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+
+    const handleDownload = () => {
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+        window.print();
+    };
 
     const templates: Array<{ id: 'classic' | 'modern' | 'minimal'; label: string }> = [
         { id: 'classic', label: 'Classic' },
@@ -73,9 +80,9 @@ export const Preview: React.FC = () => {
     const renderClassic = () => (
         <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-16 font-serif text-black overflow-hidden flex flex-col mx-auto transition-all">
             {/* Header */}
-            <div className="text-center mb-10 border-b-2 border-black pb-8">
-                <h1 className="text-4xl uppercase tracking-tighter mb-4 m-0 font-black">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
-                <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-sans font-bold">
+            <div className="text-center mb-10 pb-8" style={{ borderBottom: `2px solid ${data.colorTheme}` }}>
+                <h1 className="text-4xl uppercase tracking-tighter mb-4 m-0 font-black" style={{ color: data.colorTheme }}>{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+                <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-sans font-bold opacity-60">
                     {data.personalInfo.email && <span>{data.personalInfo.email}</span>}
                     {data.personalInfo.phone && <span>• {data.personalInfo.phone}</span>}
                     {data.personalInfo.location && <span>• {data.personalInfo.location}</span>}
@@ -85,7 +92,7 @@ export const Preview: React.FC = () => {
             {/* Summary */}
             {data.summary && (
                 <div className="mb-8">
-                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Professional Summary</h3>
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest mb-4 pb-1" style={{ borderBottom: `1px solid ${data.colorTheme}`, color: data.colorTheme }}>Professional Summary</h3>
                     <p className="text-[12px] leading-relaxed italic opacity-90 text-justify">{data.summary}</p>
                 </div>
             )}
@@ -93,7 +100,7 @@ export const Preview: React.FC = () => {
             {/* Experience */}
             {hasExperience && (
                 <div className="mb-8">
-                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Experience</h3>
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest mb-4 pb-1" style={{ borderBottom: `1px solid ${data.colorTheme}`, color: data.colorTheme }}>Experience</h3>
                     {data.experience.map((exp, i) => exp.company && (
                         <div key={i} className="mb-6">
                             <div className="flex justify-between font-bold text-[12px] mb-1 uppercase">
@@ -110,14 +117,14 @@ export const Preview: React.FC = () => {
             {/* Projects */}
             {hasProjects && (
                 <div className="mb-8">
-                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Projects</h3>
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest mb-4 pb-1" style={{ borderBottom: `1px solid ${data.colorTheme}`, color: data.colorTheme }}>Projects</h3>
                     {data.projects.map((proj, i) => proj.name && (
                         <div key={i} className="mb-5 last:mb-0">
                             <div className="flex justify-between items-center mb-1">
-                                <span className="font-bold text-[12px] uppercase">{proj.name}</span>
+                                <span className="font-bold text-[12px] uppercase" style={{ color: data.colorTheme }}>{proj.name}</span>
                                 <div className="flex gap-4">
-                                    {proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer" className="text-[9px] font-sans font-bold italic underline">GitHub</a>}
-                                    {proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer" className="text-[9px] font-sans font-bold italic underline">Live Demo</a>}
+                                    {proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer" className="text-[9px] font-sans font-bold italic underline" style={{ color: data.colorTheme }}>GitHub</a>}
+                                    {proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer" className="text-[9px] font-sans font-bold italic underline" style={{ color: data.colorTheme }}>Live Demo</a>}
                                 </div>
                             </div>
                             <p className="text-[11px] opacity-80 leading-relaxed mb-2 italic">"{proj.description}"</p>
@@ -134,7 +141,7 @@ export const Preview: React.FC = () => {
             {/* Skills */}
             {hasSkills && (
                 <div className="mb-8">
-                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-5 pb-1">Skills & Tools</h3>
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest mb-5 pb-1" style={{ borderBottom: `1px solid ${data.colorTheme}`, color: data.colorTheme }}>Skills & Tools</h3>
                     <div className="grid grid-cols-1 gap-6">
                         {Object.entries(data.skills).map(([category, skills]) => skills.length > 0 && (
                             <div key={category} className="flex gap-4 items-start">
@@ -158,101 +165,101 @@ export const Preview: React.FC = () => {
     );
 
     const renderModern = () => (
-        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-16 font-sans text-black overflow-hidden flex flex-col mx-auto transition-all">
-            {/* Hero Header */}
-            <div className="mb-12">
-                <h1 className="text-5xl font-black uppercase tracking-tight m-0 mb-3 text-red-900 border-l-[12px] border-red-900 pl-6">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
-                <div className="flex gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-[18px]">
-                    <span>{data.personalInfo.email}</span>
-                    <span>/</span>
-                    <span>{data.personalInfo.phone}</span>
-                    <span>/</span>
-                    <span>{data.personalInfo.location}</span>
+        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl font-sans text-black overflow-hidden flex mx-auto transition-all">
+            {/* Sidebar */}
+            <div className="w-[280px] p-12 text-white flex flex-col gap-10 shrink-0" style={{ backgroundColor: data.colorTheme }}>
+                <div>
+                    <h1 className="text-3xl font-black uppercase tracking-tight m-0 mb-6 leading-none">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+                    <div className="flex flex-col gap-3 text-[10px] font-bold opacity-80 uppercase tracking-widest">
+                        <span className="flex items-center gap-2">{data.personalInfo.email}</span>
+                        <span className="flex items-center gap-2">{data.personalInfo.phone}</span>
+                        <span className="flex items-center gap-2">{data.personalInfo.location}</span>
+                    </div>
                 </div>
+
+                {/* Summary Sidebar */}
+                {data.summary && (
+                    <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 opacity-50">Profile</h3>
+                        <p className="text-[11px] leading-relaxed opacity-90">{data.summary}</p>
+                    </div>
+                )}
+
+                {/* Skills Sidebar Grouped */}
+                {hasSkills && (
+                    <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 opacity-50">Expertise</h3>
+                        <div className="flex flex-col gap-6">
+                            {Object.entries(data.skills).map(([cat, skills]) => skills.length > 0 && (
+                                <div key={cat}>
+                                    <label className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-3 block">{cat}</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {skills.map((s, i) => (
+                                            <span key={i} className="text-[9px] font-black uppercase bg-white/10 px-2 py-1 rounded">{s}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <div className="grid grid-cols-[1fr_2fr] gap-12 flex-1">
-                <div className="flex flex-col gap-10">
-                    {/* Summary Sidebar */}
-                    {data.summary && (
-                        <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-red-900">About Me</h3>
-                            <p className="text-[11px] leading-relaxed text-gray-600">{data.summary}</p>
-                        </div>
-                    )}
-
-                    {/* Skills Sidebar Grouped */}
-                    {hasSkills && (
-                        <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900">Expertise</h3>
-                            <div className="flex flex-col gap-8">
-                                {Object.entries(data.skills).map(([cat, skills]) => skills.length > 0 && (
-                                    <div key={cat}>
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-gray-300 mb-3 block">{cat} Skills</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {skills.map((s, i) => (
-                                                <span key={i} className="text-[9px] font-black uppercase bg-gray-50 border border-gray-100 px-2 py-1 rounded text-gray-800">{s}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex flex-col gap-10">
-                    {/* Experience Main */}
-                    {hasExperience && (
-                        <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900 border-l-4 border-red-900 pl-4">Work Experience</h3>
+            {/* Main Content */}
+            <div className="flex-1 p-16 flex flex-col gap-12 overflow-hidden">
+                {/* Experience Main */}
+                {hasExperience && (
+                    <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-8 pb-2 border-b" style={{ color: data.colorTheme, borderColor: `${data.colorTheme}33` }}>Experience</h3>
+                        <div className="flex flex-col gap-8">
                             {data.experience.map((exp, i) => exp.company && (
-                                <div key={i} className="mb-8 last:mb-0">
-                                    <div className="flex justify-between items-baseline">
-                                        <div className="text-[12px] font-black uppercase">{exp.company}</div>
-                                        <div className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{exp.date}</div>
+                                <div key={i} className="relative pl-6 border-l-2" style={{ borderColor: `${data.colorTheme}22` }}>
+                                    <div className="absolute w-2 h-2 rounded-full -left-[5px] top-1" style={{ backgroundColor: data.colorTheme }} />
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <div className="text-[12px] font-black uppercase tracking-tight">{exp.company}</div>
+                                        <div className="text-[9px] font-black text-gray-400 mt-1">{exp.date}</div>
                                     </div>
-                                    <div className="text-[11px] font-bold text-red-800 mb-3">{exp.role}</div>
+                                    <div className="text-[10px] font-bold mb-3 uppercase tracking-widest" style={{ color: data.colorTheme }}>{exp.role}</div>
                                     <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-wrap">{exp.description}</p>
                                 </div>
                             ))}
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {/* Projects Content Grouped Cards */}
-                    {hasProjects && (
-                        <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900 border-l-4 border-red-900 pl-4">Signature Projects</h3>
-                            <div className="flex flex-col gap-6">
-                                {data.projects.map((proj, i) => proj.name && (
-                                    <div key={i} className="bg-gray-50/50 p-6 rounded-xl border border-gray-100">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="text-[13px] font-black uppercase text-gray-800 tracking-tight">{proj.name}</div>
-                                            <div className="flex gap-3">
-                                                {proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer"><Github className="w-4 h-4 text-red-900 transition-transform hover:scale-110" /></a>}
-                                                {proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 text-red-900 transition-transform hover:scale-110" /></a>}
-                                            </div>
-                                        </div>
-                                        <p className="text-[11px] text-gray-600 leading-relaxed italic mb-4">"{proj.description}"</p>
-                                        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-                                            {proj.techStack?.map((tech, idx) => (
-                                                <span key={idx} className="text-[8px] font-black uppercase tracking-widest text-red-900/50 bg-red-900/5 px-2 py-0.5 rounded-full">{tech}</span>
-                                            ))}
+                {/* Projects Main */}
+                {hasProjects && (
+                    <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-8 pb-2 border-b" style={{ color: data.colorTheme, borderColor: `${data.colorTheme}33` }}>Projects</h3>
+                        <div className="flex flex-col gap-6">
+                            {data.projects.map((proj, i) => proj.name && (
+                                <div key={i} className="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="text-[13px] font-black uppercase text-gray-800 tracking-tight">{proj.name}</div>
+                                        <div className="flex gap-3">
+                                            {proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer"><Github className="w-4 h-4 transition-transform hover:scale-110" style={{ color: data.colorTheme }} /></a>}
+                                            {proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 transition-transform hover:scale-110" style={{ color: data.colorTheme }} /></a>}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                    <p className="text-[11px] text-gray-600 leading-relaxed italic mb-4">"{proj.description}"</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {proj.techStack?.map((tech, idx) => (
+                                            <span key={idx} className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded" style={{ color: data.colorTheme, backgroundColor: `${data.colorTheme}11` }}>{tech}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 
     const renderMinimal = () => (
         <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-20 font-sans text-stone-800 overflow-hidden flex flex-col mx-auto transition-all">
-            <div className="mb-20 border-l-[1px] border-stone-200 pl-10">
-                <h1 className="text-4xl font-light tracking-[0.2em] uppercase mb-4 m-0">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+            <div className="mb-20 border-l-[1px] border-stone-200 pl-10" style={{ borderColor: data.colorTheme }}>
+                <h1 className="text-4xl font-light tracking-[0.2em] uppercase mb-4 m-0" style={{ color: data.colorTheme }}>{data.personalInfo.fullName || 'YOUR NAME'}</h1>
                 <div className="text-[9px] font-bold text-stone-400 space-x-6 uppercase tracking-[0.2em]">
                     <span>{data.personalInfo.email}</span>
                     <span>{data.personalInfo.phone}</span>
@@ -269,7 +276,7 @@ export const Preview: React.FC = () => {
                                 <div key={i} className="grid grid-cols-[140px_1fr] gap-10">
                                     <span className="text-[9px] font-black text-stone-300 mt-2 uppercase tracking-widest">{exp.date}</span>
                                     <div>
-                                        <div className="text-[14px] font-black mb-1 tracking-tight">{exp.company}</div>
+                                        <div className="text-[14px] font-black mb-1 tracking-tight" style={{ color: data.colorTheme }}>{exp.company}</div>
                                         <div className="text-[11px] italic mb-4 font-bold opacity-60 uppercase tracking-widest">{exp.role}</div>
                                         <p className="text-[11px] text-stone-500 leading-loose font-light">{exp.description}</p>
                                     </div>
@@ -284,9 +291,9 @@ export const Preview: React.FC = () => {
                         <h4 className="text-[10px] uppercase tracking-[0.3em] font-black mb-10 text-stone-300">Projects</h4>
                         <div className="grid grid-cols-2 gap-x-12 gap-y-12">
                             {data.projects.map((proj, i) => proj.name && (
-                                <div key={i} className="flex flex-col border-t border-stone-100 pt-6">
+                                <div key={i} className="flex flex-col pt-0">
                                     <div className="flex justify-between items-center mb-3">
-                                        <div className="text-[12px] font-black uppercase tracking-widest">{proj.name}</div>
+                                        <div className="text-[12px] font-black uppercase tracking-widest" style={{ color: data.colorTheme }}>{proj.name}</div>
                                         <div className="flex gap-4">
                                             {proj.githubUrl && <a href={proj.githubUrl} className="text-stone-300 hover:text-stone-900"><Github className="w-3.5 h-3.5" /></a>}
                                             {proj.liveUrl && <a href={proj.liveUrl} className="text-stone-300 hover:text-stone-900"><ExternalLink className="w-3.5 h-3.5" /></a>}
@@ -319,7 +326,7 @@ export const Preview: React.FC = () => {
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Editor
                     </Link>
-                    <button className="kn-btn kn-btn-primary" onClick={() => window.print()}>
+                    <button className="kn-btn kn-btn-primary" onClick={handleDownload}>
                         <Printer className="w-4 h-4 mr-2" />
                         Print / Save as PDF
                     </button>
@@ -380,13 +387,21 @@ export const Preview: React.FC = () => {
                                 <><Copy className="w-4 h-4 mr-2" /> Copy as Text</>
                             )}
                         </button>
-                        <button className="kn-btn kn-btn-primary" onClick={() => window.print()}>
+                        <button className="kn-btn kn-btn-primary" onClick={handleDownload}>
                             <Printer className="w-4 h-4 mr-2" />
                             Print / Save as PDF
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* Toast Notification */}
+            {showToast && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 z-50">
+                    <Check className="w-5 h-5 text-green-400" />
+                    <span className="text-sm font-bold">PDF export ready! Check your downloads.</span>
+                </div>
+            )}
         </div>
     );
 };

@@ -35,6 +35,7 @@ export interface ResumeData {
         tools: string[];
     };
     template: 'classic' | 'modern' | 'minimal';
+    colorTheme: string;
 }
 
 const sampleData: ResumeData = {
@@ -68,7 +69,8 @@ const sampleData: ResumeData = {
         soft: ["Team Leadership", "Problem Solving"],
         tools: ["Git", "Docker", "AWS"]
     },
-    template: 'classic'
+    template: 'classic',
+    colorTheme: 'hsl(168, 60%, 40%)'
 };
 
 const STORAGE_KEY = 'resumeBuilderData';
@@ -84,7 +86,8 @@ const initialData: ResumeData = {
         soft: [],
         tools: []
     },
-    template: 'classic'
+    template: 'classic',
+    colorTheme: 'hsl(168, 60%, 40%)'
 };
 
 const getSavedData = (): ResumeData => {
@@ -128,6 +131,8 @@ export const useResumeData = () => {
     const updateSummary = (value: string) => setData(prev => ({ ...prev, summary: value }));
 
     const updateTemplate = (template: ResumeData['template']) => setData(prev => ({ ...prev, template }));
+
+    const updateColorTheme = (color: string) => setData(prev => ({ ...prev, colorTheme: color }));
 
     const addEducation = () => {
         setData(prev => ({
@@ -317,6 +322,7 @@ export const useResumeData = () => {
         updatePersonalInfo,
         updateSummary,
         updateTemplate,
+        updateColorTheme,
         addEducation,
         addExperience,
         addProject,

@@ -7,14 +7,14 @@ import {
     Trash2,
     ShieldCheck,
     AlertCircle,
-    Layout,
     Sparkles,
     X,
     ChevronDown,
     ChevronUp,
     Github,
     ExternalLink,
-    Loader2
+    Loader2,
+    Check
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -102,6 +102,7 @@ export const Builder: React.FC = () => {
         updatePersonalInfo,
         updateSummary,
         updateTemplate,
+        updateColorTheme,
         addEducation,
         addExperience,
         addProject,
@@ -123,11 +124,6 @@ export const Builder: React.FC = () => {
         setIsSuggesting(false);
     };
 
-    const templates: Array<{ id: 'classic' | 'modern' | 'minimal'; label: string }> = [
-        { id: 'classic', label: 'Classic' },
-        { id: 'modern', label: 'Modern' },
-        { id: 'minimal', label: 'Minimal' }
-    ];
 
     return (
         <div className="kn-page">
@@ -148,26 +144,6 @@ export const Builder: React.FC = () => {
                 </div>
             </div>
 
-            <div className="px-10 mb-8 max-w-[1400px] mx-auto w-full">
-                <div className="flex items-center gap-4 border-b border-gray-200">
-                    <div className="flex items-center gap-2 text-gray-400 mr-4 py-3">
-                        <Layout className="w-4 h-4" />
-                        <span className="text-xs font-bold uppercase tracking-widest">Layout Template</span>
-                    </div>
-                    {templates.map(t => (
-                        <button
-                            key={t.id}
-                            className={`py-3 px-6 text-sm font-bold transition-all border-b-2 ${data.template === t.id
-                                ? 'border-red-800 text-red-800'
-                                : 'border-transparent text-gray-500 hover:text-gray-800'
-                                }`}
-                            onClick={() => updateTemplate(t.id)}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
             <div className="kn-content-grid">
                 <section className="kn-workspace flex flex-col gap-8 pb-32">
@@ -407,18 +383,89 @@ export const Builder: React.FC = () => {
                 {/* Right: Live Preview Panel */}
                 <aside className="kn-secondary-panel sticky top-32 h-fit">
 
+                    {/* Template Picker */}
+                    <div className="mb-6">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">Choose Template</label>
+                        <div className="template-grid">
+                            {[
+                                { id: 'classic', label: 'Classic', sketch: 'single' },
+                                { id: 'modern', label: 'Modern', sketch: 'two' },
+                                { id: 'minimal', label: 'Minimal', sketch: 'clean' }
+                            ].map(t => (
+                                <div
+                                    key={t.id}
+                                    className={`template-card ${data.template === t.id ? 'active' : ''}`}
+                                    onClick={() => updateTemplate(t.id as any)}
+                                >
+                                    {data.template === t.id && <div className="checkmark"><Check className="w-3 h-3" /></div>}
+                                    <div className="template-thumb">
+                                        {t.sketch === 'single' && (
+                                            <>
+                                                <div className="thumb-header" />
+                                                <div className="thumb-line" />
+                                                <div className="thumb-line short" />
+                                                <div className="thumb-line" style={{ marginTop: '8px', height: '1px' }} />
+                                                <div className="thumb-line" />
+                                            </>
+                                        )}
+                                        {t.sketch === 'two' && (
+                                            <div className="flex h-full gap-2">
+                                                <div className="thumb-sidebar bg-gray-100/50" />
+                                                <div className="thumb-content">
+                                                    <div className="thumb-line" style={{ height: '8px' }} />
+                                                    <div className="thumb-line" />
+                                                    <div className="thumb-line short" />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {t.sketch === 'clean' && (
+                                            <>
+                                                <div className="thumb-line" style={{ height: '6px', width: '40%' }} />
+                                                <div className="thumb-line" />
+                                                <div className="thumb-line" />
+                                                <div className="thumb-line" />
+                                            </>
+                                        )}
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-tighter mt-1 block text-center">{t.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Color Picker */}
+                    <div className="mb-8">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 block">Accent Color</label>
+                        <div className="color-picker">
+                            {[
+                                'hsl(168, 60%, 40%)',
+                                'hsl(220, 60%, 35%)',
+                                'hsl(345, 60%, 35%)',
+                                'hsl(150, 50%, 30%)',
+                                'hsl(0, 0%, 25%)'
+                            ].map(color => (
+                                <div
+                                    key={color}
+                                    className={`color-circle ${data.colorTheme === color ? 'active' : ''}`}
+                                    style={{ backgroundColor: color }}
+                                    onClick={() => updateColorTheme(color)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
                     {/* ATS Score Meter */}
-                    <div className="kn-panel-box bg-white border-2 border-red-800 mb-6 font-sans">
+                    <div className="kn-panel-box bg-white mb-6 font-sans" style={{ borderColor: data.colorTheme, borderWidth: '2px', borderStyle: 'solid' }}>
                         <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-2 text-red-800 font-black uppercase text-[10px] tracking-widest">
+                            <div className="flex items-center gap-2 font-black uppercase text-[10px] tracking-widest" style={{ color: data.colorTheme }}>
                                 <ShieldCheck className="w-5 h-5" />
                                 <span>ATS Readiness</span>
                             </div>
-                            <span className="text-2xl font-black text-red-800 tracking-tighter">{score}%</span>
+                            <span className="text-2xl font-black tracking-tighter" style={{ color: data.colorTheme }}>{score}%</span>
                         </div>
 
                         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-6">
-                            <div className="h-full bg-red-800 transition-all duration-500 ease-in-out" style={{ width: `${score}%` }} />
+                            <div className="h-full transition-all duration-500 ease-in-out" style={{ width: `${score}%`, backgroundColor: data.colorTheme }} />
                         </div>
 
                         {suggestions.length > 0 && (
@@ -447,7 +494,7 @@ export const Builder: React.FC = () => {
 
                         {data.skills.technical.length > 0 && (
                             <div className="mb-6">
-                                <h4 className="border-b border-black text-[10px] uppercase tracking-widest mb-3 pb-1 font-sans font-black">Skills</h4>
+                                <h4 className="text-[10px] uppercase tracking-widest mb-3 pb-1 font-sans font-black" style={{ borderBottom: `1px solid ${data.colorTheme}` }}>Skills</h4>
                                 <div className="flex flex-wrap gap-1.5">
                                     {[...data.skills.technical, ...data.skills.soft, ...data.skills.tools].slice(0, 12).map((s, i) => (
                                         <span key={i} className="text-[8px] bg-gray-100 px-2 py-0.5 rounded font-sans font-bold uppercase tracking-tighter">{s}</span>
@@ -459,7 +506,7 @@ export const Builder: React.FC = () => {
 
                         {data.projects.length > 0 && (
                             <div className="mb-6">
-                                <h4 className="border-b border-black text-[10px] uppercase tracking-widest mb-3 pb-1 font-sans font-black">Latest Project</h4>
+                                <h4 className="text-[10px] uppercase tracking-widest mb-3 pb-1 font-sans font-black" style={{ borderBottom: `1px solid ${data.colorTheme}` }}>Latest Project</h4>
                                 {data.projects.slice(0, 1).map((proj, idx) => (
                                     <div key={idx} className="bg-gray-50/50 p-4 rounded-lg border border-gray-100">
                                         <div className="flex justify-between items-center mb-1">
