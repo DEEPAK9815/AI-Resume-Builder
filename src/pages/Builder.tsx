@@ -1,17 +1,20 @@
 import React from 'react';
 import { useResumeData } from '../hooks/useResumeData';
-import { Plus, Database, Eye } from 'lucide-react';
+import { Plus, Database, Eye, Trash2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Builder: React.FC = () => {
     const {
         data,
+        score,
+        suggestions,
         loadSample,
         updatePersonalInfo,
         updateSummary,
         addEducation,
         addExperience,
         addProject,
+        removeSectionItem,
         updateEducation,
         updateExperience,
         updateProject,
@@ -116,7 +119,13 @@ export const Builder: React.FC = () => {
                             </button>
                         </div>
                         {data.education.map((edu, idx) => (
-                            <div key={idx} className="mb-6 p-4 border rounded-lg bg-gray-50 relative">
+                            <div key={idx} className="mb-6 p-4 border rounded-lg bg-gray-50 relative group">
+                                <button
+                                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeSectionItem('education', idx)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <input className="kn-input mb-0" placeholder="School" value={edu.school} onChange={(e) => updateEducation(idx, 'school', e.target.value)} />
                                     <input className="kn-input mb-0" placeholder="Degree" value={edu.degree} onChange={(e) => updateEducation(idx, 'degree', e.target.value)} />
@@ -135,13 +144,19 @@ export const Builder: React.FC = () => {
                             </button>
                         </div>
                         {data.experience.map((exp, idx) => (
-                            <div key={idx} className="mb-6 p-4 border rounded-lg bg-gray-50">
+                            <div key={idx} className="mb-6 p-4 border rounded-lg bg-gray-50 relative group">
+                                <button
+                                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeSectionItem('experience', idx)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                     <input className="kn-input mb-0" placeholder="Company" value={exp.company} onChange={(e) => updateExperience(idx, 'company', e.target.value)} />
                                     <input className="kn-input mb-0" placeholder="Role" value={exp.role} onChange={(e) => updateExperience(idx, 'role', e.target.value)} />
                                     <input className="kn-input mb-0" placeholder="Date" value={exp.date} onChange={(e) => updateExperience(idx, 'date', e.target.value)} />
                                 </div>
-                                <textarea className="kn-input" placeholder="Accomplishments..." value={exp.description} onChange={(e) => updateExperience(idx, 'description', e.target.value)} />
+                                <textarea className="kn-input" placeholder="Accomplishments... (Tip: include numbers for higher score)" value={exp.description} onChange={(e) => updateExperience(idx, 'description', e.target.value)} />
                             </div>
                         ))}
                     </div>
@@ -155,12 +170,18 @@ export const Builder: React.FC = () => {
                             </button>
                         </div>
                         {data.projects.map((proj, idx) => (
-                            <div key={idx} className="mb-6 p-4 border rounded-lg bg-gray-50">
+                            <div key={idx} className="mb-6 p-4 border rounded-lg bg-gray-50 relative group">
+                                <button
+                                    className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeSectionItem('projects', idx)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <input className="kn-input mb-0" placeholder="Project Name" value={proj.name} onChange={(e) => updateProject(idx, 'name', e.target.value)} />
                                     <input className="kn-input mb-0" placeholder="Link" value={proj.link} onChange={(e) => updateProject(idx, 'link', e.target.value)} />
                                 </div>
-                                <input className="kn-input mb-0" placeholder="Short Description" value={proj.description} onChange={(e) => updateProject(idx, 'description', e.target.value)} />
+                                <input className="kn-input mb-0" placeholder="Short Description..." value={proj.description} onChange={(e) => updateProject(idx, 'description', e.target.value)} />
                             </div>
                         ))}
                     </div>
@@ -168,7 +189,7 @@ export const Builder: React.FC = () => {
                     {/* Skills */}
                     <div className="kn-card">
                         <h3 className="mb-6 border-b pb-2">Skills</h3>
-                        <label className="kn-label">Comma separated skills</label>
+                        <label className="kn-label">Comma separated skills (Target 8+)</label>
                         <input
                             className="kn-input"
                             placeholder="React, TypeScript, AWS..."
@@ -179,41 +200,98 @@ export const Builder: React.FC = () => {
 
                 </section>
 
-                {/* Right: Live Preview Panel */}
+                {/* Right: Live Preview & Score Panel */}
                 <aside className="kn-secondary-panel sticky top-32 h-fit">
-                    <div className="kn-panel-box min-h-[600px] flex flex-col p-8 bg-white shadow-sm font-serif">
-                        <div className="text-center mb-8">
-                            <h2 className="text-2xl m-0">{data.personalInfo.fullName || 'YOUR NAME'}</h2>
-                            <div className="text-xs opacity-60 flex justify-center gap-2 mt-2">
-                                <span>{data.personalInfo.email}</span>
-                                <span>{data.personalInfo.phone}</span>
-                                <span>{data.personalInfo.location}</span>
+
+                    {/* ATS Score Meter */}
+                    <div className="kn-panel-box bg-white border-2 border-red-800 mb-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center gap-2 text-red-800 font-bold">
+                                <ShieldCheck className="w-5 h-5" />
+                                <span>ATS Readiness Score</span>
                             </div>
+                            <span className="text-2xl font-black text-red-800">{score}%</span>
                         </div>
 
-                        <div className="mb-4">
-                            <h4 className="border-b text-xs uppercase tracking-widest mb-2">Summary</h4>
-                            <p className="text-[10px] leading-relaxed italic opacity-80">{data.summary || 'Enter your summary...'}</p>
+                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-6">
+                            <div
+                                className="h-full bg-red-800 transition-all duration-500 ease-in-out"
+                                style={{ width: `${score}%` }}
+                            />
                         </div>
 
-                        <div className="mb-4">
-                            <h4 className="border-b text-xs uppercase tracking-widest mb-2">Experience</h4>
-                            <div className="h-20 border-2 border-dashed border-gray-100 rounded flex items-center justify-center text-[10px] text-gray-300">
-                                Detailed preview available in Preview route
-                            </div>
-                        </div>
-
-                        <div className="mb-4">
-                            <h4 className="border-b text-xs uppercase tracking-widest mb-2">Skills</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {data.skills.map((s, i) => (
-                                    <span key={i} className="text-[10px] bg-gray-50 px-2 py-1 rounded">{s}</span>
+                        {suggestions.length > 0 && (
+                            <div className="flex flex-col gap-3">
+                                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Improvement Tips</label>
+                                {suggestions.map((s, i) => (
+                                    <div key={i} className="flex gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                                        <AlertCircle className="w-3.5 h-3.5 text-red-800 shrink-0" />
+                                        <span>{s}</span>
+                                    </div>
                                 ))}
                             </div>
+                        )}
+                    </div>
+
+                    {/* Real-time Preview Panel */}
+                    <div className="kn-panel-box min-h-[500px] flex flex-col p-6 bg-white shadow-lg font-serif border border-gray-200">
+                        <div className="text-center mb-6">
+                            <h2 className="text-xl m-0 uppercase tracking-tighter">{data.personalInfo.fullName || 'YOUR NAME'}</h2>
+                            <div className="text-[8px] opacity-60 flex flex-wrap justify-center gap-x-2 gap-y-1 mt-2">
+                                {data.personalInfo.email && <span>{data.personalInfo.email}</span>}
+                                {data.personalInfo.phone && <span>{data.personalInfo.phone}</span>}
+                                {data.personalInfo.location && <span>{data.personalInfo.location}</span>}
+                            </div>
                         </div>
 
-                        <div className="mt-auto pt-8 text-[8px] text-center opacity-30">
-                            Generated by AI Resume Builder (KodNest)
+                        {data.summary && (
+                            <div className="mb-4">
+                                <h4 className="border-b border-black text-[9px] uppercase tracking-widest mb-1 pb-0.5">Summary</h4>
+                                <p className="text-[9px] leading-relaxed italic opacity-80 text-justify">{data.summary}</p>
+                            </div>
+                        )}
+
+                        {data.experience.length > 0 && (
+                            <div className="mb-4">
+                                <h4 className="border-b border-black text-[9px] uppercase tracking-widest mb-1 pb-0.5">Experience</h4>
+                                {data.experience.map((exp, idx) => (
+                                    <div key={idx} className="mb-2">
+                                        <div className="flex justify-between text-[9px] font-bold">
+                                            <span>{exp.company}</span>
+                                            <span>{exp.date}</span>
+                                        </div>
+                                        <div className="text-[8px] italic opacity-70 mb-0.5">{exp.role}</div>
+                                        <p className="text-[8px] opacity-80 leading-tight">{exp.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {data.education.length > 0 && (
+                            <div className="mb-4">
+                                <h4 className="border-b border-black text-[9px] uppercase tracking-widest mb-1 pb-0.5">Education</h4>
+                                {data.education.map((edu, idx) => (
+                                    <div key={idx} className="flex justify-between text-[9px] mb-1">
+                                        <div><span className="font-bold">{edu.school}</span> - {edu.degree}</div>
+                                        <span className="opacity-70">{edu.date}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {data.skills.length > 0 && (
+                            <div className="mb-4">
+                                <h4 className="border-b border-black text-[9px] uppercase tracking-widest mb-1 pb-0.5">Skills</h4>
+                                <div className="flex flex-wrap gap-1">
+                                    {data.skills.map((s, i) => (
+                                        <span key={i} className="text-[8px] bg-gray-50 px-1 py-0.5 rounded border border-gray-100">{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-auto pt-6 text-[7px] text-center opacity-30 italic">
+                            Generated within the KodNest Premium Build System
                         </div>
                     </div>
                 </aside>
