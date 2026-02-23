@@ -52,8 +52,8 @@ export const ProofPage: React.FC = () => {
     return (
         <div className="kn-page">
             <div className="kn-context-header">
-                <h1>Final Proof of Work</h1>
-                <p>Review your progress and submit the final project links.</p>
+                <h1>Proof of Work</h1>
+                <p>Submit and verify artifacts for the AI Resume Builder project.</p>
             </div>
 
             <div className="kn-content-grid">

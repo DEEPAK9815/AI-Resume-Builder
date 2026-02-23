@@ -1,15 +1,21 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { PremiumLayout } from './components/PremiumLayout';
 import { StepPage } from './pages/rb/StepPage';
 import { ProofPage } from './pages/ProofPage';
+import { Home } from './pages/Home';
+import { Builder } from './pages/Builder';
+import { Preview } from './pages/Preview';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/rb/01-problem" replace />} />
-
         <Route element={<PremiumLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/builder" element={<Builder />} />
+          <Route path="/preview" element={<Preview />} />
+          <Route path="/proof" element={<ProofPage />} />
+
           <Route path="/rb/01-problem" element={
             <StepPage
               step={1}

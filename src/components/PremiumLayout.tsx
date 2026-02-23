@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import { CheckCircle, Clock } from 'lucide-react';
 
 export const PremiumLayout: React.FC = () => {
@@ -14,15 +14,21 @@ export const PremiumLayout: React.FC = () => {
     <div className="kn-layout">
       {/* Top Bar */}
       <header className="kn-top-bar">
-        <div className="kn-top-bar-title">AI Resume Builder</div>
+        <div className="flex items-center gap-8">
+          <Link to="/" className="kn-top-bar-title" style={{ textDecoration: 'none', color: 'inherit' }}>AI Resume Builder</Link>
+          <nav className="flex gap-10">
+            <Link to="/builder" className={`text-sm font-semibold uppercase tracking-wide hover:text-red-800 transition-colors ${path === '/builder' ? 'text-red-800' : 'text-gray-500'}`}>Builder</Link>
+            <Link to="/preview" className={`text-sm font-semibold uppercase tracking-wide hover:text-red-800 transition-colors ${path === '/preview' ? 'text-red-800' : 'text-gray-500'}`}>Preview</Link>
+            <Link to="/proof" className={`text-sm font-semibold uppercase tracking-wide hover:text-red-800 transition-colors ${path === '/proof' ? 'text-red-800' : 'text-gray-500'}`}>Proof</Link>
+          </nav>
+        </div>
+
         {currentStep > 0 && (
           <div className="kn-progress-indicator">Project 3 — Step {currentStep} of 8</div>
         )}
-        {currentStep === 0 && path.includes('proof') && (
-          <div className="kn-progress-indicator">Project 3 — Final Review</div>
-        )}
+
         <div className="kn-status-badge in-progress">
-          {currentStep === 8 ? 'Finalizing' : 'In Progress'}
+          {currentStep === 8 ? 'Finalizing' : 'Active'}
         </div>
       </header>
 
