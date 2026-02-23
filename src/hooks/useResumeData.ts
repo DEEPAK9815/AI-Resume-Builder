@@ -24,9 +24,16 @@ export interface ResumeData {
     projects: Array<{
         name: string;
         description: string;
-        link: string;
+        techStack: string[];
+        liveUrl: string;
+        githubUrl: string;
+        isOpen?: boolean; // For collapsible state (UI only, but persisted for convenience)
     }>;
-    skills: string[];
+    skills: {
+        technical: string[];
+        soft: string[];
+        tools: string[];
+    };
     template: 'classic' | 'modern' | 'minimal';
 }
 
@@ -47,10 +54,20 @@ const sampleData: ResumeData = {
         { company: "CloudScale", role: "Senior Engineer", date: "2020 - Present", description: "Led development of core API serving 10M+ daily requests. Optimized database queries reducing latency by 45% using PostgreSQL indexing." }
     ],
     projects: [
-        { name: "EcoTrack", description: "Sustainability tracking app used by 10k+ users. Integrated 3 different third-party APIs.", link: "github.com/johndoe/ecotrack" },
-        { name: "DevPort", description: "Portfolio generator for developers with 100% custom styling.", link: "github.com/johndoe/devport" }
+        {
+            name: "EcoTrack",
+            description: "Sustainability tracking app used by 10k+ users. Integrated 3 different third-party APIs.",
+            techStack: ["React", "Node.js", "PostgreSQL"],
+            liveUrl: "ecotrack.app",
+            githubUrl: "github.com/johndoe/ecotrack",
+            isOpen: false
+        }
     ],
-    skills: ["React", "TypeScript", "Node.js", "GraphQL", "PostgreSQL", "AWS", "Docker", "Git"],
+    skills: {
+        technical: ["TypeScript", "React", "Node.js", "GraphQL", "PostgreSQL"],
+        soft: ["Team Leadership", "Problem Solving"],
+        tools: ["Git", "Docker", "AWS"]
+    },
     template: 'classic'
 };
 
@@ -62,7 +79,11 @@ const initialData: ResumeData = {
     education: [],
     experience: [],
     projects: [],
-    skills: [],
+    skills: {
+        technical: [],
+        soft: [],
+        tools: []
+    },
     template: 'classic'
 };
 
@@ -71,6 +92,15 @@ const getSavedData = (): ResumeData => {
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
+            // Handle migration from old skills structure if necessary
+            if (Array.isArray(parsed.skills)) {
+                parsed.skills = {
+                    technical: parsed.skills,
+                    soft: [],
+                    tools: []
+                };
+            }
+            // Add missing keys for robustness
             return { ...initialData, ...parsed };
         } catch (e) {
             return initialData;
@@ -116,7 +146,14 @@ export const useResumeData = () => {
     const addProject = () => {
         setData(prev => ({
             ...prev,
-            projects: [...prev.projects, { name: '', description: '', link: '' }]
+            projects: [...prev.projects, {
+                name: '',
+                description: '',
+                techStack: [],
+                liveUrl: '',
+                githubUrl: '',
+                isOpen: true
+            }]
         }));
     };
 
@@ -144,7 +181,7 @@ export const useResumeData = () => {
         });
     };
 
-    const updateProject = (index: number, field: keyof ResumeData['projects'][0], value: string) => {
+    const updateProject = (index: number, field: keyof ResumeData['projects'][0], value: any) => {
         setData(prev => {
             const newList = [...prev.projects];
             newList[index] = { ...newList[index], [field]: value };
@@ -152,8 +189,59 @@ export const useResumeData = () => {
         });
     };
 
-    const updateSkills = (value: string) => {
-        setData(prev => ({ ...prev, skills: value.split(',').map(s => s.trim()).filter(Boolean) }));
+    const toggleProjectOpen = (index: number) => {
+        setData(prev => {
+            const newList = [...prev.projects];
+            newList[index] = { ...newList[index], isOpen: !newList[index].isOpen };
+            return { ...prev, projects: newList };
+        });
+    };
+
+    const updateSkillCategory = (category: keyof ResumeData['skills'], skills: string[]) => {
+        setData(prev => ({
+            ...prev,
+            skills: {
+                ...prev.skills,
+                [category]: skills
+            }
+        }));
+    };
+
+    const addSkill = (category: keyof ResumeData['skills'], skill: string) => {
+        if (!skill.trim()) return;
+        setData(prev => {
+            if (prev.skills[category].includes(skill.trim())) return prev;
+            return {
+                ...prev,
+                skills: {
+                    ...prev.skills,
+                    [category]: [...prev.skills[category], skill.trim()]
+                }
+            };
+        });
+    };
+
+    const removeSkill = (category: keyof ResumeData['skills'], skill: string) => {
+        setData(prev => ({
+            ...prev,
+            skills: {
+                ...prev.skills,
+                [category]: prev.skills[category].filter(s => s !== skill)
+            }
+        }));
+    };
+
+    const suggestSkills = async () => {
+        // Mock loading for 1 second
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setData(prev => ({
+            ...prev,
+            skills: {
+                technical: Array.from(new Set([...prev.skills.technical, "TypeScript", "React", "Node.js", "PostgreSQL", "GraphQL"])),
+                soft: Array.from(new Set([...prev.skills.soft, "Team Leadership", "Problem Solving"])),
+                tools: Array.from(new Set([...prev.skills.tools, "Git", "Docker", "AWS"]))
+            }
+        }));
     };
 
     // Deterministic ATS Scoring
@@ -169,9 +257,10 @@ export const useResumeData = () => {
         }
 
         // 2. Numeric Impact (Numbers in bullets) - Priority 2
-        const hasNumbers = [...data.experience, ...data.projects].some(
+        const hasNumbers = [...data.experience].some(
             item => /\d+(%|k|x|X|m)?/.test(item.description || '')
-        );
+        ) || data.projects.some(p => /\d+(%|k|x|X|m)?/.test(p.description || ''));
+
         if (hasNumbers) {
             score += 15;
         } else {
@@ -187,7 +276,8 @@ export const useResumeData = () => {
         }
 
         // 4. Skills (>= 8) - Priority 4
-        if (data.skills.length >= 8) {
+        const totalSkills = data.skills.technical.length + data.skills.soft.length + data.skills.tools.length;
+        if (totalSkills >= 8) {
             score += 10;
         } else {
             suggestions.push("Focus on expanding your skills list (target 8+ core competencies).");
@@ -234,6 +324,10 @@ export const useResumeData = () => {
         updateEducation,
         updateExperience,
         updateProject,
-        updateSkills
+        toggleProjectOpen,
+        updateSkillCategory,
+        addSkill,
+        removeSkill,
+        suggestSkills
     };
 };

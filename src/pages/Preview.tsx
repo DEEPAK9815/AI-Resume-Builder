@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useResumeData } from '../hooks/useResumeData';
-import { ArrowLeft, Printer, Layout, Copy, AlertTriangle, Check } from 'lucide-react';
+import { ArrowLeft, Printer, Layout, Copy, AlertTriangle, Check, Github, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Preview: React.FC = () => {
@@ -16,7 +16,7 @@ export const Preview: React.FC = () => {
     const hasEducation = data.education.length > 0 && data.education.some(e => e.school);
     const hasExperience = data.experience.length > 0 && data.experience.some(e => e.company);
     const hasProjects = data.projects.length > 0 && data.projects.some(p => p.name);
-    const hasSkills = data.skills.length > 0;
+    const hasSkills = data.skills.technical.length > 0 || data.skills.soft.length > 0 || data.skills.tools.length > 0;
 
     const isIncomplete = !data.personalInfo.fullName || (!hasExperience && !hasProjects);
 
@@ -52,13 +52,16 @@ export const Preview: React.FC = () => {
             text += `\nPROJECTS\n`;
             data.projects.forEach(proj => {
                 if (proj.name) {
-                    text += `${proj.name} (${proj.link})\n${proj.description}\n\n`;
+                    text += `${proj.name} (Tech: ${proj.techStack.join(', ')})\n${proj.description}\nLinks: ${proj.liveUrl || 'N/A'}, ${proj.githubUrl || 'N/A'}\n\n`;
                 }
             });
         }
 
         if (hasSkills) {
-            text += `SKILLS\n${data.skills.join(', ')}\n`;
+            text += `SKILLS\n`;
+            if (data.skills.technical.length) text += `Technical: ${data.skills.technical.join(', ')}\n`;
+            if (data.skills.soft.length) text += `Soft Skills: ${data.skills.soft.join(', ')}\n`;
+            if (data.skills.tools.length) text += `Tools: ${data.skills.tools.join(', ')}\n`;
         }
 
         navigator.clipboard.writeText(text);
@@ -68,11 +71,11 @@ export const Preview: React.FC = () => {
 
     // Template Renderers
     const renderClassic = () => (
-        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-16 font-serif text-black overflow-hidden flex flex-col mx-auto">
+        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-16 font-serif text-black overflow-hidden flex flex-col mx-auto transition-all">
             {/* Header */}
             <div className="text-center mb-10 border-b-2 border-black pb-8">
-                <h1 className="text-4xl uppercase tracking-tighter mb-4 m-0">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
-                <div className="flex justify-center gap-6 text-[11px] uppercase tracking-widest font-sans font-bold">
+                <h1 className="text-4xl uppercase tracking-tighter mb-4 m-0 font-black">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+                <div className="flex justify-center gap-6 text-[10px] uppercase tracking-widest font-sans font-bold">
                     {data.personalInfo.email && <span>{data.personalInfo.email}</span>}
                     {data.personalInfo.phone && <span>• {data.personalInfo.phone}</span>}
                     {data.personalInfo.location && <span>• {data.personalInfo.location}</span>}
@@ -82,7 +85,7 @@ export const Preview: React.FC = () => {
             {/* Summary */}
             {data.summary && (
                 <div className="mb-8">
-                    <h3 className="text-[12px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Professional Summary</h3>
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Professional Summary</h3>
                     <p className="text-[12px] leading-relaxed italic opacity-90 text-justify">{data.summary}</p>
                 </div>
             )}
@@ -90,46 +93,76 @@ export const Preview: React.FC = () => {
             {/* Experience */}
             {hasExperience && (
                 <div className="mb-8">
-                    <h3 className="text-[12px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Experience</h3>
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Experience</h3>
                     {data.experience.map((exp, i) => exp.company && (
                         <div key={i} className="mb-6">
                             <div className="flex justify-between font-bold text-[12px] mb-1 uppercase">
                                 <span>{exp.company}</span>
                                 <span>{exp.date}</span>
                             </div>
-                            <div className="italic text-[12px] mb-2">{exp.role}</div>
+                            <div className="italic text-[11px] mb-2 font-sans font-bold opacity-70">{exp.role}</div>
                             <p className="text-[11px] opacity-80 leading-relaxed whitespace-pre-wrap">{exp.description}</p>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Education */}
-            {hasEducation && (
-                <div className="mb-8 text-black">
-                    <h3 className="text-[12px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Education</h3>
-                    {data.education.map((edu, i) => edu.school && (
-                        <div key={i} className="flex justify-between items-baseline mb-2 text-[12px]">
-                            <div><span className="font-bold uppercase">{edu.school}</span> • {edu.degree}</div>
-                            <span className="font-bold text-[10px]">{edu.date}</span>
+            {/* Projects */}
+            {hasProjects && (
+                <div className="mb-8">
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-4 pb-1">Projects</h3>
+                    {data.projects.map((proj, i) => proj.name && (
+                        <div key={i} className="mb-5 last:mb-0">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-[12px] uppercase">{proj.name}</span>
+                                <div className="flex gap-4">
+                                    {proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer" className="text-[9px] font-sans font-bold italic underline">GitHub</a>}
+                                    {proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer" className="text-[9px] font-sans font-bold italic underline">Live Demo</a>}
+                                </div>
+                            </div>
+                            <p className="text-[11px] opacity-80 leading-relaxed mb-2 italic">"{proj.description}"</p>
+                            <div className="flex flex-wrap gap-2 text-[9px] font-sans font-black uppercase tracking-tighter opacity-70">
+                                {proj.techStack?.map((t, idx) => (
+                                    <span key={idx}>{t}{idx < proj.techStack.length - 1 ? ' •' : ''}</span>
+                                ))}
+                            </div>
                         </div>
                     ))}
                 </div>
             )}
 
+            {/* Skills */}
+            {hasSkills && (
+                <div className="mb-8">
+                    <h3 className="text-[11px] font-sans font-black uppercase tracking-widest border-b border-black mb-5 pb-1">Skills & Tools</h3>
+                    <div className="grid grid-cols-1 gap-6">
+                        {Object.entries(data.skills).map(([category, skills]) => skills.length > 0 && (
+                            <div key={category} className="flex gap-4 items-start">
+                                <span className="text-[9px] font-sans font-black uppercase tracking-widest opacity-40 w-24 shrink-0 mt-1">{category}</span>
+                                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                    {skills.map((s, i) => (
+                                        <span key={i} className="text-[11px] font-bold">{s}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Simple footer for all */}
-            <div className="mt-auto pt-8 border-t border-gray-100 text-[8px] text-center opacity-30 italic">
+            <div className="mt-auto pt-8 border-t border-gray-100 text-[8px] text-center opacity-30 italic font-sans tracking-[0.3em] font-black uppercase">
                 AI Resume Builder — Generated by KodNest
             </div>
         </div>
     );
 
     const renderModern = () => (
-        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-16 font-sans text-black overflow-hidden flex flex-col mx-auto">
+        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-16 font-sans text-black overflow-hidden flex flex-col mx-auto transition-all">
             {/* Hero Header */}
             <div className="mb-12">
-                <h1 className="text-5xl font-black uppercase tracking-tight m-0 mb-3 text-red-900">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
-                <div className="flex gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <h1 className="text-5xl font-black uppercase tracking-tight m-0 mb-3 text-red-900 border-l-[12px] border-red-900 pl-6">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+                <div className="flex gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-[18px]">
                     <span>{data.personalInfo.email}</span>
                     <span>/</span>
                     <span>{data.personalInfo.phone}</span>
@@ -148,13 +181,20 @@ export const Preview: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Skills Sidebar */}
+                    {/* Skills Sidebar Grouped */}
                     {hasSkills && (
                         <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-red-900">Competencies</h3>
-                            <div className="flex flex-col gap-2">
-                                {data.skills.map((s, i) => (
-                                    <span key={i} className="text-[10px] font-bold uppercase py-1 border-b border-gray-100">{s}</span>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900">Expertise</h3>
+                            <div className="flex flex-col gap-8">
+                                {Object.entries(data.skills).map(([cat, skills]) => skills.length > 0 && (
+                                    <div key={cat}>
+                                        <label className="text-[8px] font-black uppercase tracking-widest text-gray-300 mb-3 block">{cat} Skills</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {skills.map((s, i) => (
+                                                <span key={i} className="text-[9px] font-black uppercase bg-gray-50 border border-gray-100 px-2 py-1 rounded text-gray-800">{s}</span>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -165,27 +205,43 @@ export const Preview: React.FC = () => {
                     {/* Experience Main */}
                     {hasExperience && (
                         <div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900 border-l-4 border-red-900 pl-4">Professional History</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900 border-l-4 border-red-900 pl-4">Work Experience</h3>
                             {data.experience.map((exp, i) => exp.company && (
                                 <div key={i} className="mb-8 last:mb-0">
-                                    <div className="text-[12px] font-black uppercase">{exp.company}</div>
-                                    <div className="text-[11px] font-bold text-red-800 mb-2">{exp.role} — {exp.date}</div>
-                                    <p className="text-[11px] text-gray-600 leading-relaxed">{exp.description}</p>
+                                    <div className="flex justify-between items-baseline">
+                                        <div className="text-[12px] font-black uppercase">{exp.company}</div>
+                                        <div className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{exp.date}</div>
+                                    </div>
+                                    <div className="text-[11px] font-bold text-red-800 mb-3">{exp.role}</div>
+                                    <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-wrap">{exp.description}</p>
                                 </div>
                             ))}
                         </div>
                     )}
 
-                    {/* Projects Content */}
+                    {/* Projects Content Grouped Cards */}
                     {hasProjects && (
                         <div>
                             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-red-900 border-l-4 border-red-900 pl-4">Signature Projects</h3>
-                            {data.projects.map((proj, i) => proj.name && (
-                                <div key={i} className="mb-6 last:mb-0">
-                                    <div className="text-[12px] font-bold uppercase mb-1">{proj.name}</div>
-                                    <p className="text-[11px] text-gray-600">{proj.description}</p>
-                                </div>
-                            ))}
+                            <div className="flex flex-col gap-6">
+                                {data.projects.map((proj, i) => proj.name && (
+                                    <div key={i} className="bg-gray-50/50 p-6 rounded-xl border border-gray-100">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="text-[13px] font-black uppercase text-gray-800 tracking-tight">{proj.name}</div>
+                                            <div className="flex gap-3">
+                                                {proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer"><Github className="w-4 h-4 text-red-900 transition-transform hover:scale-110" /></a>}
+                                                {proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4 text-red-900 transition-transform hover:scale-110" /></a>}
+                                            </div>
+                                        </div>
+                                        <p className="text-[11px] text-gray-600 leading-relaxed italic mb-4">"{proj.description}"</p>
+                                        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                                            {proj.techStack?.map((tech, idx) => (
+                                                <span key={idx} className="text-[8px] font-black uppercase tracking-widest text-red-900/50 bg-red-900/5 px-2 py-0.5 rounded-full">{tech}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -194,28 +250,28 @@ export const Preview: React.FC = () => {
     );
 
     const renderMinimal = () => (
-        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-20 font-sans text-stone-800 overflow-hidden flex flex-col mx-auto">
-            <div className="mb-16">
-                <h1 className="text-3xl font-light tracking-[0.1em] uppercase mb-4">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
-                <div className="text-[9px] font-medium text-stone-400 space-x-4 uppercase tracking-widest">
+        <div className="bg-white w-full max-w-[800px] aspect-[1/1.41] shadow-2xl p-20 font-sans text-stone-800 overflow-hidden flex flex-col mx-auto transition-all">
+            <div className="mb-20 border-l-[1px] border-stone-200 pl-10">
+                <h1 className="text-4xl font-light tracking-[0.2em] uppercase mb-4 m-0">{data.personalInfo.fullName || 'YOUR NAME'}</h1>
+                <div className="text-[9px] font-bold text-stone-400 space-x-6 uppercase tracking-[0.2em]">
                     <span>{data.personalInfo.email}</span>
                     <span>{data.personalInfo.phone}</span>
                     <span>{data.personalInfo.location}</span>
                 </div>
             </div>
 
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-16">
                 {hasExperience && (
                     <section>
-                        <h4 className="text-[10px] uppercase tracking-widest font-black mb-8 border-b-2 border-stone-100 pb-2">Experience</h4>
-                        <div className="flex flex-col gap-8">
+                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black mb-10 text-stone-300">Background</h4>
+                        <div className="flex flex-col gap-10">
                             {data.experience.map((exp, i) => exp.company && (
-                                <div key={i} className="grid grid-cols-[120px_1fr] gap-4">
-                                    <span className="text-[9px] font-bold text-stone-400 mt-1 uppercase">{exp.date}</span>
+                                <div key={i} className="grid grid-cols-[140px_1fr] gap-10">
+                                    <span className="text-[9px] font-black text-stone-300 mt-2 uppercase tracking-widest">{exp.date}</span>
                                     <div>
-                                        <div className="text-[13px] font-bold mb-1">{exp.company}</div>
-                                        <div className="text-[11px] italic mb-3">{exp.role}</div>
-                                        <p className="text-[11px] text-stone-500 leading-relaxed font-light">{exp.description}</p>
+                                        <div className="text-[14px] font-black mb-1 tracking-tight">{exp.company}</div>
+                                        <div className="text-[11px] italic mb-4 font-bold opacity-60 uppercase tracking-widest">{exp.role}</div>
+                                        <p className="text-[11px] text-stone-500 leading-loose font-light">{exp.description}</p>
                                     </div>
                                 </div>
                             ))}
@@ -223,18 +279,28 @@ export const Preview: React.FC = () => {
                     </section>
                 )}
 
-                {hasEducation && (
+                {hasProjects && (
                     <section>
-                        <h4 className="text-[10px] uppercase tracking-widest font-black mb-6 border-b-2 border-stone-100 pb-2">Education</h4>
-                        {data.education.map((edu, i) => edu.school && (
-                            <div key={i} className="grid grid-cols-[120px_1fr] gap-4 mb-4">
-                                <span className="text-[9px] font-bold text-stone-400 mt-1 uppercase">{edu.date}</span>
-                                <div>
-                                    <div className="text-[12px] font-bold">{edu.school}</div>
-                                    <div className="text-[11px] text-stone-500">{edu.degree}</div>
+                        <h4 className="text-[10px] uppercase tracking-[0.3em] font-black mb-10 text-stone-300">Projects</h4>
+                        <div className="grid grid-cols-2 gap-x-12 gap-y-12">
+                            {data.projects.map((proj, i) => proj.name && (
+                                <div key={i} className="flex flex-col border-t border-stone-100 pt-6">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className="text-[12px] font-black uppercase tracking-widest">{proj.name}</div>
+                                        <div className="flex gap-4">
+                                            {proj.githubUrl && <a href={proj.githubUrl} className="text-stone-300 hover:text-stone-900"><Github className="w-3.5 h-3.5" /></a>}
+                                            {proj.liveUrl && <a href={proj.liveUrl} className="text-stone-300 hover:text-stone-900"><ExternalLink className="w-3.5 h-3.5" /></a>}
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-stone-400 leading-relaxed font-light mb-4 italic line-clamp-3">"{proj.description}"</p>
+                                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-auto">
+                                        {proj.techStack?.map((t, idx) => (
+                                            <span key={idx} className="text-[8px] font-black uppercase tracking-widest text-stone-300">{t}</span>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </section>
                 )}
             </div>
@@ -242,7 +308,7 @@ export const Preview: React.FC = () => {
     );
 
     return (
-        <div className="kn-page flex flex-col items-center pb-32">
+        <div className="kn-page flex flex-col items-center pb-32 transition-all">
             <div className="kn-context-header w-full max-w-4xl flex justify-between items-center mb-12 no-print">
                 <div>
                     <h1>Resume Preview</h1>
