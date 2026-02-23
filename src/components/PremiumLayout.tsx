@@ -1,15 +1,15 @@
 import React from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { CheckCircle, Clock } from 'lucide-react';
 
 export const PremiumLayout: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
-  
+
   // Extract step from path /rb/0X-something
   const stepMatch = path.match(/\/rb\/0(\d)-/);
   const currentStep = stepMatch ? parseInt(stepMatch[1]) : 0;
-  
+
   return (
     <div className="kn-layout">
       {/* Top Bar */}
@@ -19,7 +19,7 @@ export const PremiumLayout: React.FC = () => {
           <div className="kn-progress-indicator">Project 3 — Step {currentStep} of 8</div>
         )}
         {currentStep === 0 && path.includes('proof') && (
-            <div className="kn-progress-indicator">Project 3 — Final Review</div>
+          <div className="kn-progress-indicator">Project 3 — Final Review</div>
         )}
         <div className="kn-status-badge in-progress">
           {currentStep === 8 ? 'Finalizing' : 'In Progress'}
